@@ -9,6 +9,9 @@ from sklearn.datasets import fetch_openml
 from sklearn.metrics import *
 from sklearn.model_selection import train_test_split
 
+from data_augmentation.pipeline import synthesize_data
+
+
 EXEC_TIME_MINUTES = 10
 EXEC_TIME_SECONDS = EXEC_TIME_MINUTES*60
 SEED = 42
@@ -16,7 +19,7 @@ TIMER = TicToc()
 
 def get_dataset_ref():
     dataset_ref = None
-    if len(sys.argv) != 2:
+    if len(sys.argv) > 3:
         print('usage: python common.py dataset_ref')
     else:
         try:
@@ -24,6 +27,16 @@ def get_dataset_ref():
         except:
             dataset_ref = str(sys.argv[1])
     return dataset_ref
+
+def get_synthesizer_ref():
+    synthesizer_ref = None
+    if len(sys.argv) > 3:
+        print('usage: python common.py synthesizer_ref')
+    elif len(sys.argv) == 2:
+        synthesizer_ref = "none"
+    else:    
+        synthesizer_ref = str(sys.argv[2])
+    return synthesizer_ref
 
 def infer_task_type(y_test):
     num_classes = len(set(y_test))
@@ -46,22 +59,44 @@ def load_data_delegate():
 def load_csv():
     base_folder = os.path.join(os.path.dirname(__file__), 'datasets', get_dataset_ref())
     dataset = pd.read_csv(base_folder+".csv").infer_objects()
-    return dataset
+    # The target column must be the last one
+    target_name = dataset.columns[-1]
+    X = dataset.drop(columns=target_name)
+    y = dataset[target_name]
+    y.name = target_name
+
+    return X, y
 
 def load_openml():
     dataset = fetch_openml(data_id=get_dataset_ref(), return_X_y=False)
 
     X, y = dataset.data, dataset.target
-    target_class = dataset.target_names[0]
+    target_name = dataset.target_names[0]
     for col in X.columns.values:
         if X[col].dtype.name == 'category':
             X[col] = pd.Series(pd.factorize(X[col])[0])
     y = pd.Series(pd.factorize(y)[0])
+    y.name = target_name
 
-    dataset_concat = X.copy()
-    dataset_concat[target_class] = y
-    return dataset_concat
-    # return train_test_split(X, y, test_size=0.2, random_state=SEED)
+    return X, y
+
+def generate_synthetic_dataset(X: pd.DataFrame, y: pd.Series):
+    synthesizer_name = get_synthesizer_ref()
+
+    target_name = y.name
+
+    dataset = X.copy()
+    dataset[target_name] = y
+
+    synthetic_data = synthesize_data(dataset, target_name, synthesizer_name)
+    complete_data = pd.concat([dataset, synthetic_data], ignore_index=True)
+
+    X = complete_data.drop(columns=[target_name])
+    y = complete_data[target_name]
+
+    X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.2, random_state=SEED)
+
+    return X_train, X_test, y_train, y_test, complete_data, synthetic_data
 
 def calculate_score(metric, y_true, y_pred, **kwargs):
 	try:
