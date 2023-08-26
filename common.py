@@ -45,23 +45,23 @@ def load_data_delegate():
 
 def load_csv():
     base_folder = os.path.join(os.path.dirname(__file__), 'datasets', get_dataset_ref())
-    filenames = ['X_train.csv', 'X_test.csv', 'y_train.csv', 'y_test.csv']
-    dfs = []
-    for filename in filenames:
-        full_filename = os.path.join(base_folder, filename)
-        csv = pd.read_csv(filepath_or_buffer=full_filename).infer_objects().to_numpy()
-        dfs.append(csv.ravel() if csv.shape[1] == 1 else csv)
-    return dfs[0], dfs[1], dfs[2], dfs[3]
+    dataset = pd.read_csv(base_folder+".csv").infer_objects()
+    return dataset
 
 def load_openml():
     dataset = fetch_openml(data_id=get_dataset_ref(), return_X_y=False)
 
     X, y = dataset.data, dataset.target
+    target_class = dataset.target_names[0]
     for col in X.columns.values:
         if X[col].dtype.name == 'category':
             X[col] = pd.Series(pd.factorize(X[col])[0])
     y = pd.Series(pd.factorize(y)[0])
-    return train_test_split(X, y, test_size=0.2, random_state=SEED)
+
+    dataset_concat = X.copy()
+    dataset_concat[target_class] = y
+    return dataset_concat
+    # return train_test_split(X, y, test_size=0.2, random_state=SEED)
 
 def calculate_score(metric, y_true, y_pred, **kwargs):
 	try:
