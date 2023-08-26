@@ -6,7 +6,7 @@ try:
 
     X_train, X_test, y_train, y_test = load_data_delegate()
 
-    multi_label = is_multi_label()
+    multi_label = False
     autokeras = ak.StructuredDataClassifier(multi_label=multi_label, max_trials=3, overwrite=True, seed=SEED)
 
     TIMER.tic()
