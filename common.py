@@ -104,7 +104,9 @@ def calculate_score(metric, y_true, y_pred, **kwargs):
 	except:
 		return -1.0
 
-def collect_and_persist_results(y_test, y_pred, training_time, test_time, framework="unknown"):
+def collect_and_persist_results(
+        y_test, y_pred, training_time, test_time, framework="unknown",
+        complete_data=None, synthetic_data=None, synthesizer_time=0):
     results = {}
     results.update({"framework":                                framework})
     results.update({"accuracy_score":                           calculate_score(accuracy_score, y_test, y_pred)})
@@ -123,8 +125,16 @@ def collect_and_persist_results(y_test, y_pred, training_time, test_time, framew
     results.update({"label_ranking_loss":                       calculate_score(label_ranking_loss, y_test, y_pred)})
     results.update({"training_time":                            time.strftime("%H:%M:%S", time.gmtime(training_time))})
     results.update({"test_time":                                time.strftime("%H:%M:%S", time.gmtime(test_time))})
+    results.update({"synthesizer_time":                         time.strftime("%H:%M:%S", time.gmtime(synthesizer_time))})
     print(results)
     if not os.path.exists(f'./results/{get_dataset_ref()}'):
         os.makedirs(f'./results/{get_dataset_ref()}')
     with open(f"./results/{get_dataset_ref()}/automl_{framework}.json", "w") as outfile:
         json.dump(results, outfile)
+    if not complete_data:
+        complete_data = pd.DataFrame()
+    if not synthetic_data:
+        synthetic_data = pd.DataFrame()
+
+    complete_data.to_csv(f"./results/{get_dataset_ref()}/automl_{framework}_{get_synthesizer_ref()}_complete.csv", index=False)
+    synthetic_data.to_csv(f"./results/{get_dataset_ref()}/automl_{framework}_{get_synthesizer_ref()}_generated.csv", index=False)
