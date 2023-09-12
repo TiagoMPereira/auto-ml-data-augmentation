@@ -1,1 +1,1 @@
-from synthesizer.metadata.sdv_metadata import SDVMetadata
+from data_augmentation.metadata.sdv_metadata import SDVMetadata

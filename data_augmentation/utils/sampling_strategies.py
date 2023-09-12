@@ -37,3 +37,11 @@ def all_strategy(occurences: dict):
                 for class_ in occurences.keys()
     }
     return new_occurences
+
+def threshold_strategy(occurences: dict, threshold: int):
+    max_occurences = max(occurences.values())
+    new_occurences = {
+        class_: min(max_occurences - occurences[class_], occurences[class_]*threshold)
+                for class_ in occurences.keys()
+    }
+    return new_occurences

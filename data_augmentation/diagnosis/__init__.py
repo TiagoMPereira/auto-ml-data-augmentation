@@ -1,1 +1,1 @@
-from synthesizer.diagnosis.diagnosis import diagnostic
+from data_augmentation.diagnosis.diagnosis import diagnostic

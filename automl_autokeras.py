@@ -13,6 +13,9 @@ try:
         generate_synthetic_dataset(X, y)
     synthesizer_time = TIMER.tocvalue()
 
+    if X_train is None or X_test is None or y_train is None or y_test is None:
+        raise ValueError("Empty data")
+
     multi_label = False
     autokeras = ak.StructuredDataClassifier(multi_label=multi_label, max_trials=3, overwrite=True, seed=SEED)
 

@@ -1,5 +1,6 @@
 import pandas as pd
 from sklearn.datasets import make_classification
+from scipy.stats import norm
 
 SEED = 42
 N_ROWS = 1599
@@ -29,30 +30,22 @@ if __name__ == "__main__":
     dataset["class"] = y
 
     new_dataset = pd.DataFrame()
-    # 2 colunas originais
+    # 3 colunas gaussianas
     new_dataset["col_0"] = dataset["col_0"]
     new_dataset["col_1"] = dataset["col_1"]
+    new_dataset["col_2"] = dataset["col_2"]
 
-    # 1 coluna apenas com valores positivos
-    new_dataset["col_2"] = dataset["col_2"] + abs(min(dataset["col_2"]))
+    # 3 distribuições uniformes
+    new_dataset["col_3"] = norm.cdf(dataset["col_3"], dataset['col_3'].mean(), dataset['col_3'].std())
+    new_dataset["col_4"] = norm.cdf(dataset["col_4"], dataset['col_4'].mean(), dataset['col_4'].std())
+    new_dataset["col_5"] = norm.cdf(dataset["col_5"], dataset['col_5'].mean(), dataset['col_5'].std())
 
-    # 1 coluna apenas com valores negativos
-    new_dataset["col_3"] = dataset["col_3"] - max(dataset["col_3"])
-
-    # 2 colunas com valores escalados * 100
-    new_dataset["col_4"] = dataset["col_4"] * 100
-    new_dataset["col_5"] = dataset["col_5"] * 100
-
-    # 2 colunas com valores categóricos numéricos
+    # 4 colunas com valores categóricos numéricos
     new_dataset["col_6"] = dataset["col_6"].astype("int")
     new_dataset["col_7"] = dataset["col_7"].astype("int")
-
-    # 2 colunas com valores categóricos literais
-    replace_8 = {-3: "earth", -2: "water", -1: "fire", 0: "air"}
-    new_dataset["col_8"] = dataset["col_8"].astype("int").replace(replace_8)
-    replace_9 = {-4: "sun", -3: "mon", -2: "tue", -1: "wed", 0: "thu", 1: "fri", 2: "sat"}
-    new_dataset["col_9"] = dataset["col_9"].astype("int").replace(replace_9)
+    new_dataset["col_8"] = dataset["col_8"].astype("int")
+    new_dataset["col_9"] = dataset["col_9"].astype("int")
 
     new_dataset['class'] = dataset['class']
 
-    new_dataset.to_csv("openml_datasets/synthetic_dataset.csv", index=False)
+    new_dataset.to_csv("openml_datasets/synthetic_dataset2.csv", index=False)

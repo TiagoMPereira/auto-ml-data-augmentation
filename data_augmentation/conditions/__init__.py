@@ -1,1 +1,1 @@
-from synthesizer.conditions.sdv_conditions import create_conditions
+from data_augmentation.conditions.sdv_conditions import create_conditions

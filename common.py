@@ -19,7 +19,7 @@ TIMER = TicToc()
 
 def get_dataset_ref():
     dataset_ref = None
-    if len(sys.argv) > 3:
+    if len(sys.argv) > 4:
         print('usage: python common.py dataset_ref')
     else:
         try:
@@ -30,13 +30,23 @@ def get_dataset_ref():
 
 def get_synthesizer_ref():
     synthesizer_ref = None
-    if len(sys.argv) > 3:
+    if len(sys.argv) > 4:
         print('usage: python common.py synthesizer_ref')
     elif len(sys.argv) == 2:
         synthesizer_ref = "none"
     else:    
         synthesizer_ref = str(sys.argv[2])
     return synthesizer_ref
+
+def get_synthesizer_limit():
+    if len(sys.argv) > 4:
+        print('usage: python common.py dataset_ref')
+    else:
+        try:
+            synthesizer_limit = int(sys.argv[3])
+        except:
+            synthesizer_limit = str(sys.argv[3])
+    return synthesizer_limit
 
 def infer_task_type(y_test):
     num_classes = len(set(y_test))
@@ -82,13 +92,22 @@ def load_openml():
 
 def generate_synthetic_dataset(X: pd.DataFrame, y: pd.Series):
     synthesizer_name = get_synthesizer_ref()
+    synthesizer_limit = get_synthesizer_limit()
+
+    print(synthesizer_name)
+    print(synthesizer_limit)
+
+    if synthesizer_name == "none" and synthesizer_limit != "none":
+        return None, None, None, None, None, None
 
     target_name = y.name
 
     dataset = X.copy()
     dataset[target_name] = y
 
-    synthetic_data = synthesize_data(dataset, target_name, synthesizer_name)
+    synthetic_data = pd.DataFrame()
+    if synthesizer_name != "none":
+        synthetic_data = synthesize_data(dataset, target_name, synthesizer_name, synthesizer_limit)
     complete_data = pd.concat([dataset, synthetic_data], ignore_index=True)
 
     X = complete_data.drop(columns=[target_name])
@@ -129,12 +148,19 @@ def collect_and_persist_results(
     print(results)
     if not os.path.exists(f'./results/{get_dataset_ref()}'):
         os.makedirs(f'./results/{get_dataset_ref()}')
-    with open(f"./results/{get_dataset_ref()}/automl_{framework}.json", "w") as outfile:
+    with open(f"./results/{get_dataset_ref()}/automl_{framework}_{get_synthesizer_ref()}_thresh_{get_synthesizer_limit()}.json", "w") as outfile:
         json.dump(results, outfile)
-    if not complete_data:
+
+    
+    if complete_data is None:
         complete_data = pd.DataFrame()
-    if not synthetic_data:
+    if synthetic_data is None:
         synthetic_data = pd.DataFrame()
 
-    complete_data.to_csv(f"./results/{get_dataset_ref()}/automl_{framework}_{get_synthesizer_ref()}_complete.csv", index=False)
-    synthetic_data.to_csv(f"./results/{get_dataset_ref()}/automl_{framework}_{get_synthesizer_ref()}_generated.csv", index=False)
+    print(complete_data.head())
+    print(complete_data.shape)
+    print(synthetic_data.head())
+    print(synthetic_data.shape)
+
+    complete_data.to_csv(f"./results/{get_dataset_ref()}/automl_{framework}_{get_synthesizer_ref()}_thresh_{get_synthesizer_limit()}complete.csv", index=False)
+    synthetic_data.to_csv(f"./results/{get_dataset_ref()}/automl_{framework}_{get_synthesizer_ref()}_thresh_{get_synthesizer_limit()}generated.csv", index=False)

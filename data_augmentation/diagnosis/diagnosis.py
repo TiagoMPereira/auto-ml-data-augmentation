@@ -3,17 +3,19 @@ import pandas as pd
 from data_augmentation.utils.sampling_strategies import (all_strategy,
                                                    minority_strategy,
                                                    not_majority_strategy,
-                                                   not_minority_strategy)
+                                                   not_minority_strategy,
+                                                   threshold_strategy)
 
 
 def diagnostic(
     data: pd.DataFrame,
     target: str,
-    sampling_strategy: str = "auto"
+    sampling_strategy: str = "auto",
+    sampling_strategy_thresh: int = None
 ):
     
     available_strategies = [
-        "all", "auto", "minority", "not majority", "not minority"]
+        "all", "auto", "minority", "not majority", "not minority", "threshold"]
     if sampling_strategy not in available_strategies:
         raise ValueError(f"The strategy {sampling_strategy} is not available."
                          "The available strategies are "
@@ -38,6 +40,9 @@ def diagnostic(
         rows_to_generate = minority_strategy(classes_occurences)
     elif sampling_strategy == "not minority":
         rows_to_generate = not_minority_strategy(classes_occurences)
+    elif sampling_strategy == "threshold":
+        rows_to_generate = threshold_strategy(classes_occurences,
+                                              sampling_strategy_thresh)
 
     target_type = data[target].dtypes.name
 

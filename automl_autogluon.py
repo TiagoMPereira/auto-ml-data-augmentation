@@ -13,7 +13,8 @@ try:
         generate_synthetic_dataset(X, y)
     synthesizer_time = TIMER.tocvalue()
 
-
+    if X_train is None or X_test is None or y_train is None or y_test is None:
+        raise ValueError("Empty data")
 
     train_df = pd.DataFrame(X_train).assign(**{'class': pd.Series(y_train)}).dropna()
     test_df = pd.DataFrame(X_test).assign(**{'class': pd.Series(y_test)}).dropna()

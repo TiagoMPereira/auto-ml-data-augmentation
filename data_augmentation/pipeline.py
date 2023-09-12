@@ -7,11 +7,23 @@ import pandas as pd
 
 
 def synthesize_data(
-    data: pd.DataFrame, target_name: str, synthesizer_name: str
+    data: pd.DataFrame, target_name: str, synthesizer_name: str,
+    synthesizer_limit, diagnosis: dict = {}
 ):
+    
+    if isinstance(synthesizer_limit, str):
+        sampling_strategy = "auto"
+        sampling_strategy_thresh = None
+    elif isinstance(synthesizer_limit, int):
+        sampling_strategy = "threshold"
+        sampling_strategy_thresh = synthesizer_limit
+
     metadata = SDVMetadata()
     metadata.create_from_df(data)
-    diagnosis = diagnostic(data, target_name)
+    if not diagnosis:
+        diagnosis = diagnostic(data, target_name,
+                               sampling_strategy=sampling_strategy,
+                               sampling_strategy_thresh=sampling_strategy_thresh)
     classes_to_generate = diagnosis["rows_to_generate"]
     
     synthesizers = {

@@ -7,7 +7,16 @@ from common import *
 
 try:
 
-    X_train, X_test, y_train, y_test = load_data_delegate()
+    # X_train, X_test, y_train, y_test = load_data_delegate()
+    X, y = load_data_delegate()
+
+
+    TIMER.tic()    
+    X_train, X_test, y_train, y_test, complete_data, synthetic_data = \
+        generate_synthetic_dataset(X, y)
+    synthesizer_time = TIMER.tocvalue()
+
+
     train_df = pd.DataFrame(X_train).assign(**{'class': pd.Series(y_train)}).dropna()
     train_df = train_df.rename(columns={i:str(i) for i in train_df.columns})
     test_df = pd.DataFrame(X_test).assign(**{'class': pd.Series(y_test)}).dropna()
@@ -25,7 +34,8 @@ try:
     y_pred = np.argmax(clf.predict(test_df).data, axis=1)
     test_time = TIMER.tocvalue()
 
-    collect_and_persist_results(y_test, y_pred, training_time, test_time, "lightautoml")
+    collect_and_persist_results(y_test, y_pred, training_time, test_time, "lightautoml",
+                                complete_data, synthetic_data, synthesizer_time)
 
 except Exception as e:
     print(f'Cannot run lightautoml for dataset {get_dataset_ref()}. Reason: {str(e)}')

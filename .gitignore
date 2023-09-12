@@ -132,3 +132,7 @@ dmypy.json
 **/venv*
 **/structured*
 **/Autogluon*
+
+results/
+datasets/
+openml_datasets/
